@@ -23,13 +23,13 @@ public class CallLogInfo {
 
         int number = c.getColumnIndex(CallLog.Calls.NUMBER);
         int index = 0;
-        int occurrances;
+        int occurrences;
         while (c.moveToNext()) {
             String phNumber = c.getString(number);
             if(phoneNumIndices.get(phNumber) != null){
-                occurrances = scores.get(phoneNumIndices.get(phNumber));
+                occurrences = scores.get(phoneNumIndices.get(phNumber));
 
-                scores.set(phoneNumIndices.get(phNumber), occurrances + 1);
+                scores.set(phoneNumIndices.get(phNumber), occurrences + 1);
             }
             else{
 

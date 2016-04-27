@@ -28,30 +28,6 @@ public class SerializationUtil {
 
         return null;
     }
-    /**
-     * This is for files from /resources
-     * @param myInput - inputstream of file
-     * @return
-     */
-    public static Object deserialize(InputStream myInput) {
-
-        FileInputStream fis;
-
-        try {
-
-            fis = (FileInputStream)myInput;
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            Object obj = ois.readObject();
-            ois.close();
-            return obj;
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            System.out.println("ERROR1");
-            e.printStackTrace();
-        }
-
-        return null;
-    }
 
     // serialize the given object and save it to file
     public static void serialize(Object obj, String fileName){

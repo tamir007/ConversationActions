@@ -1,15 +1,10 @@
 package com.app.td.actionableconversation;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.location.Location;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.ContactsContract;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -22,60 +17,38 @@ import com.app.td.actionableconversation.AppUtils.TimeUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import static com.app.td.actionableconversation.AppUtils.SerializationUtil.serialize;
-
-//google shit
-
-/**
- * This Class will handle all Tele-Phone actions.
- */
 public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
-    static boolean isInstalled = false;
     String debugTag = "debug";
-    static boolean running = false;
     static PredictionCycle speech;
-    static PSTMultiClassClassifier classifer;
+    public static PSTMultiClassClassifier classifier;
     static Context myContext;
     static String callAddress;
-    static String myPhoneContacts;
-    // private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
-    HashMap<String, Double> newCall;
-    double signedResult;
-
-    public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
-    public static final String PHONE_NUMBERS_EXTRA = "Relevant numbers";
     private Location mLastLocation;
-    private boolean isRelevant;
-    static double latitude;
-    static double longitude;
-    // Google client to interact with Google API
     static GoogleApiClient mGoogleApiClient;
 
     public static final String BROADCAST = "PACKAGE_NAME.android.action.broadcast";
     @Override
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
+        feedbackAndSave(number);
         recordMic();
     }
 
     @Override
     protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
+        feedbackAndSave(number);
         recordMic();
     }
 
+
     @Override
     protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
+        feedbackAndSave(number);
         stopRecordMic();
     }
 
@@ -89,6 +62,17 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         // do not need
     }
 
+
+    private void feedbackAndSave(String number){
+        if(classifier != null){
+            HashMap<String,Character> map = MainActivity.getContactToCharMap();
+            Character c = map.get(number);
+            classifier.feedback(c.charValue());
+
+            PSTUtils.savePST(classifier);
+
+        }
+    }
 
 
     public static void setLocation(String address){
@@ -118,37 +102,14 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         boolean shouldStop;
         String theText;
         public void feedback(char tag){
-            if(classifer != null){
-                classifer.feedback(tag);
+            if(classifier != null){
+                classifier.feedback(tag);
                 Log.i(debugTag, "feedback successful in PredictionCycle.feedback()");
             }else{
-                Log.i(debugTag,"classifer null in PredictionCycle.feedback()");
+                Log.i(debugTag, "classifier null in PredictionCycle.feedback()");
             }
 
         }
-
-
-        public String findContact(String phoneNumber) {
-            Log.i(debugTag, "finding contact");
-            ContentResolver cr = myContext.getContentResolver();
-            Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
-            Cursor cur = cr.query(uri, new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
-            // add checks to the results of the cursor
-            if (cur == null) {
-                Log.i(debugTag, "cursor null");
-                return null;
-            }
-            String contactName = null;
-            if (cur.moveToFirst()) {
-                contactName = cur.getString(cur.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
-                Log.i(debugTag, "name is : " + contactName);
-            }
-            if (cur != null && !cur.isClosed()) {
-                cur.close();
-            }
-            return contactName;
-        }
-
 
         /**
          * Initialize PredictionCycle
@@ -266,13 +227,19 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
                 private void predict(){
                     int[] time = getTime();
-                    char prediction = PSTUtils.predictInputOnClassifier(classifer,theText,getLocation(),time);
+                    char prediction = PSTUtils.predictInputOnClassifier(theText,getLocation(),time);
                     onPredictionAction(prediction);
                 }
 
                 private void onPredictionAction(char prediction){
+                    // does nothing for now
+                    HashMap<Character,String> map = MainActivity.commonData.getCToS();
 
+                    String contact = map.get(new Character(prediction));
+                    Log.i(debugTag, "contact predicted : " + contact);
                 }
+
+
 
                 @Override
                 public void onBufferReceived(byte[] buffer) {

@@ -1,10 +1,9 @@
 package com.app.td.actionableconversation;
 
-import com.app.td.actionableconversation.Algorithm.PSTMultiClassClassifier;
-import com.app.td.actionableconversation.AppUtils.AppData;
 import com.app.td.actionableconversation.AppUtils.CallLogInfo;
 import com.app.td.actionableconversation.AppUtils.PSTUtils;
 import com.app.td.actionableconversation.AppUtils.SerializationUtil;
+import com.app.td.actionableconversation.DB.DB;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -14,31 +13,46 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
     String debugTag = "debug";
-    PSTUtils pstUtils = new PSTUtils("classifer.ser");
+    PSTUtils pstUtils = new PSTUtils("/data/classifier.ser");
+    String dbPath = "/data/db.ser";
+    static DB commonData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         buildGoogleApiClient();
-        PhoneCallHandlerTrans.classifer = pstUtils.loadPST();
+        PhoneCallHandlerTrans.classifier = pstUtils.loadPST();
+        loadDB();
+    }
 
+    public void saveDB(){
+        SerializationUtil.serialize(commonData, dbPath);
+    }
 
+    public static HashMap<Character,String> getCharToContactMap(){
+        return commonData.getCToS();
+    }
 
-        AppData myAppData;
-        String[] fiveMostCalled;
-        fiveMostCalled = CallLogInfo.getMostCalled(5, this);
-        myAppData = new AppData();
-        myAppData.setFiveMostCalled(fiveMostCalled);
+    public static HashMap<String,Character> getContactToCharMap(){
+        return commonData.getSToC();
+    }
 
-
-
-
+    public void loadDB(){
+        commonData = (DB)SerializationUtil.deserialize(dbPath);
+        if(commonData == null) {
+            commonData = new DB();
+            String[] fiveMostCalled = CallLogInfo.getMostCalled(5, this);
+            commonData.addUsers(fiveMostCalled);
+            saveDB();
+        }
     }
 
     @Override

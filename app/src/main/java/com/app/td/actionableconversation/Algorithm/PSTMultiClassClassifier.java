@@ -44,57 +44,7 @@ public class PSTMultiClassClassifier implements Serializable
 			_g.get(currLabel).put("", 0.0d);
 		}
 	}
-	
-	private Double[] normalizeVector(Double[] x){
-		double sum = 0.0;
-		double elements = x.length;
-		for(Double xt :x){
-			sum+=xt;
-		}
-		double avg = sum/elements;
-		double temp = 0.0;
-		double squaredSum = 0.0;
-		for(int i = 0 ; i < elements ; i++){
-			temp = x[i] - avg;
-			temp *= temp;
-			temp /= elements;
-			squaredSum += temp;
-			x[i] = x[i]-avg;
-		}
-		double alpha = Math.sqrt(squaredSum);
-		for(int i = 0 ; i < elements ; i++){
-			x[i] = x[i]/alpha;
-			if(i < 24){
-				x[i] = x[i];
-			}
-		}
-		return x;
-		
-	}
-	
-	private Double[] strechVector(Double[] x){
-		
-		double sum = 0.0;
-		double elements = x.length;
-		for(Double xt :x){
-			sum+=xt;
-		}
-		double avg = sum/elements;
-		double temp = 0.0;
-		double squaredSum = 0.0;
-		for(int i = 0 ; i < elements ; i++){
-			temp = x[i] - avg;
-			temp *= temp;
-			squaredSum += temp;
-			x[i] = x[i]-avg;
-		}
-		double alpha = Math.sqrt(squaredSum);
-		for(int i = 0 ; i < elements ; i++){
-			x[i] = x[i]/alpha;
-		}
-		return x;	
-		
-	}
+
 	
 	/*
 	 * Predicts the next label according to the labels history and to the specified feature vector
