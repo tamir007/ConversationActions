@@ -1,6 +1,8 @@
 package com.app.td.actionableconversation;
 
 import com.app.td.actionableconversation.Algorithm.PSTMultiClassClassifier;
+import com.app.td.actionableconversation.AppUtils.AppData;
+import com.app.td.actionableconversation.AppUtils.CallLogInfo;
 import com.app.td.actionableconversation.AppUtils.PSTUtils;
 import com.app.td.actionableconversation.AppUtils.SerializationUtil;
 import com.google.android.gms.common.ConnectionResult;
@@ -25,6 +27,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         buildGoogleApiClient();
         PhoneCallHandlerTrans.classifer = pstUtils.loadPST();
+
+
+
+        AppData myAppData;
+        String[] fiveMostCalled;
+        fiveMostCalled = CallLogInfo.getMostCalled(5, this);
+        myAppData = new AppData();
+        myAppData.setFiveMostCalled(fiveMostCalled);
+
+
+
 
     }
 
