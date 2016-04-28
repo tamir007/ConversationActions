@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.CallLog;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ public class CallLogInfo {
 
     public static String[] getMostCalled(int numOfContacts, Activity activity){
         Uri allCalls = Uri.parse("content://call_log/calls");
+        Log.i("debug", "getMostCalled");
         Cursor c = activity.managedQuery(allCalls, null, null, null, null);
         HashMap<String,Integer> phoneNumIndices = new HashMap<>();
         HashMap<Integer, String> indicesToPhone = new HashMap<>();
@@ -24,7 +26,9 @@ public class CallLogInfo {
         int number = c.getColumnIndex(CallLog.Calls.NUMBER);
         int index = 0;
         int occurrences;
-        while (c.moveToNext()) {
+        int mostRecent = 200;
+        while (c.moveToNext() && mostRecent > 0 ) {
+            mostRecent--;
             String phNumber = c.getString(number);
             if(phoneNumIndices.get(phNumber) != null){
                 occurrences = scores.get(phoneNumIndices.get(phNumber));

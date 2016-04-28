@@ -26,8 +26,9 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     String debugTag = "debug";
     static PredictionCycle speech;
     public static PSTMultiClassClassifier classifier;
-    static Context myContext;
+    public static Context myContext,currentContext;
     static String callAddress;
+    public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
 
     private Location mLastLocation;
     static GoogleApiClient mGoogleApiClient;
@@ -41,14 +42,13 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
     @Override
     protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
-        feedbackAndSave(number);
+       feedbackAndSave(number);
         recordMic();
     }
 
 
     @Override
     protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
-        feedbackAndSave(number);
         stopRecordMic();
     }
 
@@ -64,29 +64,27 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
 
     private void feedbackAndSave(String number){
+        Log.i(debugTag, " feedbackAndSave");
         if(classifier != null){
             HashMap<String,Character> map = MainActivity.getContactToCharMap();
+            Log.i(debugTag, " number is : " + number);
             Character c = map.get(number);
+            if(c == null){
+                Log.i(debugTag, "Character is null");
+                c = new Character('6');
+            }
+            Log.i(debugTag, " after get character in feedbackandSave " + c.charValue());
             classifier.feedback(c.charValue());
-
-            PSTUtils.savePST(classifier);
-
+        }else{
+            Log.i(debugTag, " classifier is null");
         }
     }
-
-
-    public static void setLocation(String address){
-        callAddress = address;
-    }
-
 
     private void recordMic() {
         Log.i(debugTag, "record mic");
         mGoogleApiClient.connect();
-        if(speech == null){
-            speech = new PredictionCycle();
-            speech.initialize();
-        }
+        speech = new PredictionCycle();
+        speech.initialize();
         speech.run();
 
     }
@@ -100,7 +98,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         SpeechRecognizer recognizer;
         Intent intent;
         boolean shouldStop;
-        String theText;
+        String theText = "";
         public void feedback(char tag){
             if(classifier != null){
                 classifier.feedback(tag);
@@ -117,6 +115,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         protected void initialize() {
             Log.d(debugTag, "initialize PredictionCycle");
             intent = createRecognitionIntent();
+            Log.d(debugTag, "after createRecognitionIntent");
             recognizer = SpeechRecognizer.createSpeechRecognizer(myContext);
             Log.d(debugTag, "after recognizer init");
         }
@@ -140,7 +139,6 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
             Log.d(debugTag, "stop call");
             recognizer.stopListening();
             Toast.makeText(myContext, "Transcript stopped", Toast.LENGTH_SHORT).show();
-            return;
         }
 
         private void runSpeech(SpeechRecognizer n_recognizer, Intent n_intent) {
@@ -233,13 +231,21 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
                 private void onPredictionAction(char prediction){
                     // does nothing for now
+                    Log.i(debugTag, "onPredictionAction");
                     HashMap<Character,String> map = MainActivity.commonData.getCToS();
-
+                    Log.i(debugTag, "contact predicted : " + prediction);
+                    if(prediction == '?'){
+                        prediction = '6';
+                        Log.i(debugTag, "contact predicted change to : " + prediction);
+                    }
                     String contact = map.get(new Character(prediction));
-                    Log.i(debugTag, "contact predicted : " + contact);
+                    Intent intent = new Intent(myContext.getApplicationContext() , SuggestActivity.class);
+                    intent.putExtra(MENTIONED_NAMES_EXTRA, contact);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Log.i(debugTag, "Starting Activity");
+                    myContext.getApplicationContext().startActivity(intent);
+                    Log.i(debugTag, "Activity started");
                 }
-
-
 
                 @Override
                 public void onBufferReceived(byte[] buffer) {
@@ -270,11 +276,15 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         }
 
         private Intent createRecognitionIntent() {
+            Log.i(debugTag,"createRecognitionIntent");
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            Log.i(debugTag,"RecognizerIntent ACTION_RECOGNIZE_SPEECH");
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            Log.i(debugTag, "putExtra LANGUAGE_MODEL_FREE_FORM");
             intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,
                     "com.app.td.actionableconversation");
+            Log.i(debugTag, "putExtra EXTRA_CALLING_PACKAGE");
             //intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
             //intent.putExtra("android.speech.extra.DICTATION_MODE", true);
             return intent;

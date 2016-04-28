@@ -1,12 +1,16 @@
 package com.app.td.actionableconversation.DB;
 
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.Serializable;
 import java.util.HashMap;
 
 /**
  * Created by user on 14/02/2016.
  */
-public class DB implements Serializable{
+public class DB implements Serializable , Parcelable{
 
     HashMap<String,Character> sTocMap;
     HashMap<Character,String> cTosMap;
@@ -14,6 +18,29 @@ public class DB implements Serializable{
         sTocMap = new HashMap<>();
         cTosMap = new HashMap<>();
     }
+
+    protected DB(Parcel in) {
+        Serializable newObj = in.readSerializable();
+        if(newObj instanceof  HashMap){
+            sTocMap = (HashMap<String,Character>)newObj;
+        }
+        newObj = in.readSerializable();
+        if(newObj instanceof  HashMap){
+            cTosMap = (HashMap<Character,String>)newObj;
+        }
+    }
+
+    public static final Creator<DB> CREATOR = new Creator<DB>() {
+        @Override
+        public DB createFromParcel(Parcel in) {
+            return new DB(in);
+        }
+
+        @Override
+        public DB[] newArray(int size) {
+            return new DB[size];
+        }
+    };
 
     public void addUsers(String[] users){
         if(users.length != 5){
@@ -43,5 +70,14 @@ public class DB implements Serializable{
     }
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeSerializable(sTocMap);
+        parcel.writeSerializable(cTosMap);
+    }
 }

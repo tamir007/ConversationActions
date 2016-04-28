@@ -17,8 +17,8 @@ public class PSTUtils {
         this.filePath = path;
     }
 
-    public static void savePST(PSTMultiClassClassifier classifier) {
-        SerializationUtil.serialize(classifier, filePath);
+    public static void savePST(PSTMultiClassClassifier classifier, boolean isDestroy) {
+        SerializationUtil.serialize(classifier, filePath, isDestroy);
     }
 
     public PSTMultiClassClassifier loadPST() {
@@ -42,8 +42,9 @@ public class PSTUtils {
             PhoneCallHandlerTrans.classifier =  new PSTMultiClassClassifier(size,labelSet);
 
         }
-
-        return PhoneCallHandlerTrans.classifier.predict(callRep);
+        char prediction = PhoneCallHandlerTrans.classifier.predict(callRep);
+        Log.i("debug","Prediction : " + prediction);
+        return prediction;
     }
 }
 

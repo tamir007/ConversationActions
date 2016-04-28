@@ -1,4 +1,10 @@
 package com.app.td.actionableconversation.AppUtils;
+import android.util.Log;
+
+import com.app.td.actionableconversation.MainActivity;
+import com.app.td.actionableconversation.PhoneCallHandlerTrans;
+import com.app.td.actionableconversation.R;
+
 import java.util.HashMap;
 
 
@@ -42,8 +48,8 @@ public class RepresentationUtils {
     private final static double beershevaLong = 60; //60
 
 
-    private static HashMap<String,Integer> myDict = (HashMap<String, Integer>) SerializationUtil.deserialize("dict.ser");
-    private static HashMap<String,Integer> myPlaces = (HashMap<String, Integer>) SerializationUtil.deserialize("places.ser");
+    private static HashMap<String,Integer> myDict ;
+    private static HashMap<String,Integer> myPlaces;
 
     /**
      *
@@ -55,11 +61,19 @@ public class RepresentationUtils {
      * @return double[] representing one call
      */
     public static Double[] mapData(String call, double myLat, double myLong, int clock, int day){
-
-        double clockWeight = 0.0;
-        double dayWeight = 0.0;
+        Log.i("debug", "mapData");
+        double clockWeight = 1.0;
+        double dayWeight = 1.0;
         double locWeight = 0.0;
-        double docWeight = 0.0;
+        double docWeight = 1.0;
+
+        myDict = (HashMap<String, Integer>)
+                SerializationUtil.deserialize(
+                        PhoneCallHandlerTrans.myContext.getResources().openRawResource(R.raw.dict));
+
+        myPlaces = (HashMap<String, Integer>)
+                SerializationUtil.deserialize(
+                        PhoneCallHandlerTrans.myContext.getResources().openRawResource(R.raw.places));
         Double[] resultVec;
         double[] clockVec = getClockVec(clock, clockWeight);
         double[] dayVec = getDayVec(day, dayWeight);
@@ -72,7 +86,7 @@ public class RepresentationUtils {
         for(int j = 0 ; j < resultVec.length ; j++){
             resultVec[j] = new Double(vector[j]);
         }
-
+        Log.i("debug", "mapData success");
         return resultVec;
     }
 
@@ -102,10 +116,14 @@ public class RepresentationUtils {
         String[] words = theCall.split(" ");
 
         for(String str : words){
-
-            if( (slot = myDict.get(str)) != null){
-                vec[slot] += weight;
+            try{
+                if( (slot = myDict.get(str)) != null){
+                    vec[slot] += weight;
+                }
+            }catch (Exception e){
+                Log.i("debug", "failed with dictionary");
             }
+
         }
         return vec;
     }

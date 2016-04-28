@@ -11,8 +11,8 @@ public class DBUtils {
 
     private static String DBPath = "DB PATH";
 
-    public static void saveDB(DB theDB){
-        SerializationUtil.serialize(theDB,DBPath);
+    public static void saveDB(DB theDB, boolean isDestroy){
+        SerializationUtil.serialize(theDB,DBPath,isDestroy);
         Log.i("debug", "after DB save");
 
     }
