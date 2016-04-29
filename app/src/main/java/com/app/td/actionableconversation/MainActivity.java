@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Log.i(debugTag, "Most 5 called contacts are : " + mostCalled.get('1') + " " + mostCalled.get('2') +
         " " + mostCalled.get('3') + " " + mostCalled.get('4') + " " + mostCalled.get('5'));
 
+        Toast.makeText(this, "Activated Completed", Toast.LENGTH_SHORT).show();
     }
 
     @Override

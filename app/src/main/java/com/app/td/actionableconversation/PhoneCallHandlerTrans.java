@@ -8,10 +8,12 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.telecom.Call;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.app.td.actionableconversation.Algorithm.PSTMultiClassClassifier;
+import com.app.td.actionableconversation.AppUtils.CallLogInfo;
 import com.app.td.actionableconversation.AppUtils.PSTUtils;
 import com.app.td.actionableconversation.AppUtils.TimeUtil;
 import com.app.td.actionableconversation.DB.ourLocation;
@@ -32,6 +34,7 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
     public static final  String LONGITUDE = "longitude";
     public static final  String LATITUDE = "latitude";
+    public static final  String CONTACT_NAME = "contact_name";
 
     private Location mLastLocation;
     static GoogleApiClient mGoogleApiClient;
@@ -39,12 +42,18 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     public static final String BROADCAST = "PACKAGE_NAME.android.action.broadcast";
     @Override
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
+        if(myContext == null){
+            return;
+        }
         feedbackAndSave(number);
         recordMic();
     }
 
     @Override
     protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
+        if(myContext == null){
+            return;
+        }
        feedbackAndSave(number);
         recordMic();
     }
@@ -52,11 +61,17 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
 
     @Override
     protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
+        if(myContext == null){
+            return;
+        }
         stopRecordMic();
     }
 
     @Override
     protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end) {
+        if(myContext == null){
+            return;
+        }
         stopRecordMic();
     }
 
@@ -241,14 +256,18 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                         prediction = '6';
                         Log.i(debugTag, "contact predicted change to : " + prediction);
                     }
-                    String contact = map.get(new Character(prediction));
+                    // Get contact Number
+                    String number = map.get(new Character(prediction));
                     Intent intent = new Intent(myContext.getApplicationContext() , SuggestActivity.class);
-                    intent.putExtra(MENTIONED_NAMES_EXTRA, contact);
-                    Log.i(debugTag,"Send to suggest activity : " + mLastLocation.getLongitude() +
-                    " " + mLastLocation.getLatitude() + " " + contact);
+                    intent.putExtra(MENTIONED_NAMES_EXTRA, number);
+                    Log.i(debugTag, "Send to suggest activity : " + mLastLocation.getLongitude() +
+                            " " + mLastLocation.getLatitude() + " " + number);
                     intent.putExtra(LONGITUDE, mLastLocation.getLongitude());
                     intent.putExtra(LATITUDE, mLastLocation.getLatitude());
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Log.i(debugTag, "Getting contact name of number : " + number);
+                    String contactName = CallLogInfo.getNameByNumber(myContext,number);
+                    intent.putExtra(CONTACT_NAME,contactName);
                     Log.i(debugTag, "Starting Activity");
                     myContext.getApplicationContext().startActivity(intent);
                     Log.i(debugTag, "Activity started");
