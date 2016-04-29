@@ -32,7 +32,6 @@ public class CallLogInfo {
             String phNumber = c.getString(number);
             if(phoneNumIndices.get(phNumber) != null){
                 occurrences = scores.get(phoneNumIndices.get(phNumber));
-
                 scores.set(phoneNumIndices.get(phNumber), occurrences + 1);
             }
             else{

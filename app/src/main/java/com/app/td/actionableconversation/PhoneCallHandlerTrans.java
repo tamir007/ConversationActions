@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.app.td.actionableconversation.Algorithm.PSTMultiClassClassifier;
 import com.app.td.actionableconversation.AppUtils.PSTUtils;
 import com.app.td.actionableconversation.AppUtils.TimeUtil;
+import com.app.td.actionableconversation.DB.ourLocation;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -29,6 +30,8 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
     public static Context myContext,currentContext;
     static String callAddress;
     public static final  String MENTIONED_NAMES_EXTRA = "Relevant names";
+    public static final  String LONGITUDE = "longitude";
+    public static final  String LATITUDE = "latitude";
 
     private Location mLastLocation;
     static GoogleApiClient mGoogleApiClient;
@@ -241,6 +244,10 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
                     String contact = map.get(new Character(prediction));
                     Intent intent = new Intent(myContext.getApplicationContext() , SuggestActivity.class);
                     intent.putExtra(MENTIONED_NAMES_EXTRA, contact);
+                    Log.i(debugTag,"Send to suggest activity : " + mLastLocation.getLongitude() +
+                    " " + mLastLocation.getLatitude() + " " + contact);
+                    intent.putExtra(LONGITUDE, mLastLocation.getLongitude());
+                    intent.putExtra(LATITUDE, mLastLocation.getLatitude());
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     Log.i(debugTag, "Starting Activity");
                     myContext.getApplicationContext().startActivity(intent);
@@ -319,25 +326,25 @@ public class PhoneCallHandlerTrans extends PhonecallReceiver{
         /**
          * Method to display the location on UI
          * */
-        private com.app.td.actionableconversation.DB.Location getLocation() {
-            Log.i(debugTag, "get Location");
+        private ourLocation getLocation() {
+            Log.i(debugTag, "get ourLocation");
             mLastLocation = LocationServices.FusedLocationApi
                     .getLastLocation(PhoneCallHandlerTrans.mGoogleApiClient);
-            com.app.td.actionableconversation.DB.Location location = null;
+            ourLocation ourLocation = null;
             if (mLastLocation != null) {
 
                 double latitude = mLastLocation.getLatitude();
                 double longitude = mLastLocation.getLongitude();
-                location = new com.app.td.actionableconversation.DB.Location(latitude,longitude);
-                Log.i(debugTag, "Location : latitude = " + latitude);
-                Log.i(debugTag, "Location : longitude = " + longitude);
+                ourLocation = new ourLocation(latitude,longitude);
+                Log.i(debugTag, "ourLocation : latitude = " + latitude);
+                Log.i(debugTag, "ourLocation : longitude = " + longitude);
 
 
             } else {
-                Log.i(debugTag, "last location is null");
+                Log.i(debugTag, "last ourLocation is null");
             }
 
-            return location;
+            return ourLocation;
         }
 
         private int[] getTime() {
